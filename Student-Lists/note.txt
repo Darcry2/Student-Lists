@@ -1,0 +1,1364 @@
+<?php
+class Database
+{
+    private $server = 'localhost';
+    private $username = 'root';
+    private $password = '';
+    private $db_name = 'school_lists_hub';
+
+    private $conn = null;
+    private $state = false;
+    private $errmsg = '';
+
+    public function __construct()
+    {
+        try {
+            $this->conn = new PDO("mysql:host=" . $this->server . ";dbname=" . $this->db_name, $this->username, $this->password);
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->conn->exec("set names utf8");
+            $this->state = true;
+        } catch (PDOException $exception) {
+            $this->errmsg = "Connection error: " . $exception->getMessage();
+            $this->state = false;
+            error_log($this->errmsg);  // Add this line for error logging
+        }
+    }    
+
+    public function getDb()
+    {
+        return $this->conn;
+    }
+
+    public function getState()
+    {
+        return $this->state;
+    }
+
+    public function getErrMsg()
+    {
+        return $this->errmsg;
+    }
+}
+
+?>
+
+<?php
+    // Include the TeacherFunctions class
+    require_once("../object/teacherfunctions_object.php");
+    require_once("../config/dbconnection.php");
+
+    // Check if the form is submitted
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        // Get user input from the form
+        $teacher_id = $_POST['teacher_id'];  // You need to get the teacher_id, for example, from session or another source
+        $firstname = $_POST["firstname"];
+        $lastname = $_POST["lastname"];
+        $email = $_POST["email"];
+        $gender = $_POST["gender"];
+        $birthdate = $_POST["birthdate"];
+        $contactnumber = $_POST["contactnumber"];
+        $addressed = $_POST["addressed"];
+        $school_id_number = $_POST["school_id_number"];
+        $degree = $_POST["degree"];
+        $section = $_POST["section"];
+        $password = $_POST["password"];
+
+    // Create an instance of the TeacherFunctions class
+    $teacherFunctions = new TeacherFunctions();
+
+    // Check if the database connection is successful
+    if ($teacherFunctions->getState()) {
+        // Attempt to insert the student
+        $insertResult = $teacherFunctions->insertStudent($teacher_id, $firstname, $lastname, $email, $gender, $birthdate, $contactnumber, $addressed, $school_id_number, $degree, $section);
+
+        // Handle the insert result
+        if ($insertResult) {
+            // Insert successful
+            echo "Student inserted successfully!";
+            
+            // Display the list of students
+            $students = $teacherFunctions->searchStudent("");  // You might want to adjust the search term
+            if ($students !== false) {
+                // Display the list of students here
+                echo "<pre>";
+                print_r($students);
+                echo "</pre>";
+            } else {
+                echo "Error fetching student list.";
+            }
+
+            // Redirect to a success page or perform other actions
+        } else {
+            // Insert failed
+            echo "Error inserting student.";
+            // Redirect to a failure page or display an error message
+        }
+
+        // Attempt to update the teacher
+        $updateTeacherResult = $teacherFunctions->updateTeacher($teacher_id, $firstname, $lastname, $email, $password);
+        // Handle the update result
+        if ($updateTeacherResult) {
+            // Update successful
+            echo "Teacher updated successfully!";
+        } else {
+            // Update failed
+            echo "Error updating teacher.";
+        }
+
+        // Attempt to delete the teacher
+        $deleteTeacherResult = $teacherFunctions->deleteTeacher($teacher_id);
+        // Handle the delete result
+        if ($deleteTeacherResult) {
+            // Delete successful
+            echo "Teacher deleted successfully!";
+        } else {
+            // Delete failed
+            echo "Error deleting teacher.";
+        }
+
+        // Attempt to sign in the teacher
+        $signInResult = $teacherFunctions->signInTeacher($email, $password);
+        // Handle the sign-in result
+        if ($signInResult) {
+            // Sign-in successful
+            echo "Teacher signed in successfully!";
+        } else {
+            // Sign-in failed
+            echo "Error signing in teacher.";
+        }
+
+        // Attempt to sign up the teacher
+        $signUpResult = $teacherFunctions->signUpTeacher($firstname, $lastname, $email, $password);
+        // Handle the sign-up result
+        if ($signUpResult === 1) {
+            // Sign-up successful
+            echo "Teacher signed up successfully!";
+        } elseif ($signUpResult === 0) {
+            // Sign-up failed
+            echo "Sign-up failed.";
+        } else {
+            // Error occurred during sign-up
+            echo "Error: " . $teacherFunctions->getErrMsg();
+        }
+
+        // Attempt to get student details
+        $studentDetails = $teacherFunctions->getStudent($student_lists_id);  // You need to define $student_lists_id
+        // Handle the result
+        if ($studentDetails !== null) {
+            // Display student details
+            echo "<pre>";
+            print_r($studentDetails);
+            echo "</pre>";
+        } else {
+            echo "Error fetching student details.";
+        }
+
+        // Attempt to delete a student
+        $deleteStudentResult = $teacherFunctions->deleteStudent($student_lists_id);  // You need to define $student_lists_id
+        // Handle the delete result
+        if ($deleteStudentResult) {
+            // Delete successful
+            echo "Student deleted successfully!";
+        } else {
+            // Delete failed
+            echo "Error deleting student.";
+        }
+
+        // Attempt to update a student
+        $updateStudentResult = $teacherFunctions->updateStudent($student_lists_id, $teacher_id, $firstname, $lastname, $email, $gender, $birthdate, $contactnumber, $addressed, $school_id_number, $degree, $section);
+        // Handle the update result
+        if ($updateStudentResult) {
+            // Update successful
+            echo "Student updated successfully!";
+        } else {
+            // Update failed
+            echo "Error updating student.";
+        }
+
+        // Attempt to search for students
+        $searchResult = $teacherFunctions->searchStudent($search_term);  // You need to define $search_term
+        // Handle the search result
+        if ($searchResult !== false) {
+            // Display the search results
+            echo "<pre>";
+            print_r($searchResult);
+            echo "</pre>";
+        } else {
+            echo "Error searching for students.";
+        }
+
+        // Attempt to get teacher id
+        $teacherIdResult = $teacherFunctions->getTeacherId($email);
+        // Handle the result
+        if ($teacherIdResult !== null) {
+            // Display teacher id
+            echo "Teacher ID: " . $teacherIdResult['teacher_id'];
+        } else {
+            echo "Error fetching teacher ID.";
+        }
+    } else {
+        // Database connection failed
+        echo "Error connecting to the database: " . $teacherFunctions->getErrMsg();
+        // Log the error, redirect to an error page, or display a generic error message
+    }
+} else {
+    // Redirect or handle accordingly if the form is not submitted
+    echo "Invalid request.";
+}
+?>
+
+<?php
+require_once("../config/dbconnection.php");
+
+class TeacherFunctions {
+    private $dbcon;
+    private $state;
+    private $errmsg;
+
+    public function __construct(){
+        try {
+            $db = new Database();
+            if ($db->getState()) {
+                $this->dbcon = $db->getDb();
+                $this->state = true;
+                $this->errmsg = "Connected";
+            } else {
+                $this->state = false;
+                $this->errmsg = $db->getErrMsg();
+            }
+        } catch (Exception $e) {
+            $this->state = false;
+            $this->errmsg = $e->getMessage();
+        }
+    }
+
+    public function getState() {
+        return $this->state;
+    }
+
+    public function getErrMsg() {
+        return $this->errmsg;
+    }
+
+    public function signUpTeacher($firstname, $lastname, $email, $password) {
+        $sql = "CALL sp_signup_teacher(:firstname, :lastname, :email, :password)";
+        $stmt = $this->dbcon->prepare($sql);
+
+        $stmt->bindParam(':firstname', $firstname);
+        $stmt->bindParam(':lastname', $lastname);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':password', $password);
+
+        try {
+            $stmt->execute();
+            // Check if the procedure executed successfully
+            if ($stmt->rowCount() > 0) {
+                return 1; // Success
+            } else {
+                return 0; // Failed
+            }
+        } catch (Exception $ex) {
+            $this->errmsg = $ex->getMessage();
+            return -1; // Error
+        }
+    }
+
+    public function signInTeacher($email, $password) {
+        $sql = "CALL sp_signin_teacher(:email, :password)";
+        $stmt = $this->dbcon->prepare($sql);
+
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':password', $password);
+
+        try {
+            $stmt->execute();
+    
+            // Check if the procedure executed successfully
+            if ($stmt->rowCount() > 0) {
+                return 1; // Success
+            } else {
+                return 0; // Incorrect email or password
+            }
+        } catch (Exception $ex) {
+            $this->errmsg = $ex->getMessage();
+            return -1; // Error
+        }
+    }
+
+    public function updateTeacher($teacher_id, $firstname, $lastname, $email, $password) {
+        $sql = "CALL sp_update_teacher(:teacher_id, :firstname, :lastname, :email, :password)";
+        $stmt = $this->dbcon->prepare($sql);
+
+        $stmt->bindParam(':teacher_id', $teacher_id, PDO::PARAM_INT);
+        $stmt->bindParam(':firstname', $firstname);
+        $stmt->bindParam(':lastname', $lastname);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':password', $password);
+
+        try {
+            $stmt->execute();
+    
+            // Check if the procedure executed successfully
+            if ($stmt->rowCount() > 0) {
+                return 1; // Success
+            } else {
+                return 0; // Incorrect email or password
+            }
+        } catch (Exception $ex) {
+            $this->errmsg = $ex->getMessage();
+            return -1; // Error
+        }
+    }
+
+    public function deleteTeacher($teacher_id) {
+        $sql = "CALL sp_delete_teacher(:teacher_id)";
+        $stmt = $this->dbcon->prepare($sql);
+        $stmt->bindParam(':teacher_id', $teacher_id, PDO::PARAM_INT);
+
+        try {
+            $stmt->execute();
+    
+            // Check if the procedure executed successfully
+            if ($stmt->rowCount() > 0) {
+                return 1; // Success
+            } else {
+                return 0; // Incorrect email or password
+            }
+        } catch (Exception $ex) {
+            $this->errmsg = $ex->getMessage();
+            return -1; // Error
+        }
+    }
+
+    public function updateStudent($student_lists_id, $teacher_id, $firstname, $lastname, $email, $gender, $birthdate, $contactnumber, $addressed, $school_id_number, $degree, $section) {
+        $sql = "CALL sp_update_student(:student_lists_id, :teacher_id, :firstname, :lastname, :email, :gender, :birthdate, :contactnumber, :addressed, :school_id_number, :degree, :section)";
+        $stmt = $this->dbcon->prepare($sql);
+
+        $stmt->bindParam(':student_lists_id', $student_lists_id, PDO::PARAM_INT);
+        $stmt->bindParam(':teacher_id', $teacher_id, PDO::PARAM_INT);
+        $stmt->bindParam(':firstname', $firstname);
+        $stmt->bindParam(':lastname', $lastname);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':gender', $gender);
+        $stmt->bindParam(':birthdate', $birthdate);
+        $stmt->bindParam(':contactnumber', $contactnumber);
+        $stmt->bindParam(':addressed', $addressed);
+        $stmt->bindParam(':school_id_number', $school_id_number);
+        $stmt->bindParam(':degree', $degree);
+        $stmt->bindParam(':section', $section);
+
+        try {
+            $stmt->execute();
+    
+            // Check if the procedure executed successfully
+            if ($stmt->rowCount() > 0) {
+                return 1; // Success
+            } else {
+                return 0; // Incorrect email or password
+            }
+        } catch (Exception $ex) {
+            $this->errmsg = $ex->getMessage();
+            return -1; // Error
+        }
+    }
+
+    public function deleteStudent($student_lists_id) {
+        $sql = "CALL sp_delete_student(:student_lists_id)";
+        $stmt = $this->dbcon->prepare($sql);
+        $stmt->bindParam(':student_lists_id', $student_lists_id, PDO::PARAM_INT);
+
+        try {
+            $stmt->execute();
+    
+            // Check if the procedure executed successfully
+            if ($stmt->rowCount() > 0) {
+                return 1; // Success
+            } else {
+                return 0; // Incorrect email or password
+            }
+        } catch (Exception $ex) {
+            $this->errmsg = $ex->getMessage();
+            return -1; // Error
+        }
+    }
+
+    public function searchStudent($search_term) {
+        $sql = "CALL sp_search_student(:search_term)";
+        $stmt = $this->dbcon->prepare($sql);
+        $stmt->bindParam(':search_term', $search_term, PDO::PARAM_STR);
+
+        try {
+            $stmt->execute();
+            // Fetch the results
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $ex) {
+            $this->errmsg = $ex->getMessage();
+            return false; // Error
+        }
+    }
+
+    public function getStudent($student_lists_id) {
+        $sql = "CALL sp_get_student(:student_lists_id)";
+        $stmt = $this->dbcon->prepare($sql);
+        $stmt->bindParam(':student_lists_id', $student_lists_id, PDO::PARAM_INT);
+
+        try {
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $ex) {
+            $this->errmsg = $ex->getMessage();
+            return null; // Error
+        }
+    }
+
+    public function insertStudent($teacher_id, $firstname, $lastname, $email, $gender, $birthdate, $contactnumber, $addressed, $school_id_number, $degree, $section) {
+        $sql = "CALL sp_insert_student(:teacher_id, :firstname, :lastname, :email, :gender, :birthdate, :contactnumber, :addressed, :school_id_number, :degree, :section)";
+        $stmt = $this->dbcon->prepare($sql);
+
+        $stmt->bindParam(':teacher_id', $teacher_id, PDO::PARAM_INT);
+        $stmt->bindParam(':firstname', $firstname);
+        $stmt->bindParam(':lastname', $lastname);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':gender', $gender);
+        $stmt->bindParam(':birthdate', $birthdate);
+        $stmt->bindParam(':contactnumber', $contactnumber);
+        $stmt->bindParam(':addressed', $addressed);
+        $stmt->bindParam(':school_id_number', $school_id_number);
+        $stmt->bindParam(':degree', $degree);
+        $stmt->bindParam(':section', $section);
+
+        try {
+            $stmt->execute();
+    
+            // Check if the procedure executed successfully
+            if ($stmt->rowCount() > 0) {
+                return 1; // Success
+            } else {
+                return 0; // Incorrect email or password
+            }
+        } catch (Exception $ex) {
+            $this->errmsg = $ex->getMessage();
+            return -1; // Error
+        }
+    }
+
+    public function getTeacherId($email) {
+        $sql = "CALL sp_get_teacher_id(:email)";
+        $stmt = $this->dbcon->prepare($sql);
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+
+        try {
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $ex) {
+            $this->errmsg = $ex->getMessage();
+            return null; // Error
+        }
+    }
+}
+?>
+
+<?php
+require_once("../object/teacherfunctions_object.php");
+require_once("../config/dbconnection.php");
+
+// Set the response type to JSON
+header('Content-Type: application/json');
+// Allow requests from any origin
+header('Access-Control-Allow-Origin: *');
+// Allow both POST and GET methods
+header('Access-Control-Allow-Methods: POST GET');
+// Allow the Content-Type header in the request
+header('Access-Control-Allow-Headers: Content-Type');
+
+// Check if the form is submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get user input from the form
+    $action = $_POST["action"];
+
+    // Create an instance of the TeacherFunctions class
+    $teacherFunctions = new TeacherFunctions();
+
+    // Check if the database connection is successful
+    if ($teacherFunctions->getState()) {
+        // Handle different actions based on the provided action parameter
+        switch ($action) {
+            case 'signUpTeacher':
+                handleSignUpTeacher($teacherFunctions);
+                break;
+            case 'signInTeacher':
+                handleSignInTeacher($teacherFunctions);
+                break;
+            case 'updateTeacher':
+                handleUpdateTeacher($teacherFunctions);
+                break;
+            case 'deleteTeacher':
+                handleDeleteTeacher($teacherFunctions);
+                break;
+            case 'insertStudent':
+                handleInsertStudent($teacherFunctions);
+                break;
+            case 'getStudent':
+                handleGetStudent($teacherFunctions);
+                break;
+            case 'updateStudent':
+                handleUpdateStudent($teacherFunctions);
+                break;
+            case 'deleteStudent':
+                handleDeleteStudent($teacherFunctions);
+                break;
+            case 'searchStudent':
+                handleSearchStudent($teacherFunctions);
+                break;
+            case 'getTeacherId':
+                handleGetTeacherId($teacherFunctions);
+                break;
+            // Add more cases for other actions if needed
+            default:
+                // Unknown action
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Unknown action.'
+                ];
+                echo json_encode($response);
+                break;
+        }
+    } else {
+        // Database connection failed
+        $response = [
+            'status' => 'error',
+            'message' => 'Error connecting to the database: ' . $teacherFunctions->getErrMsg()
+        ];
+        echo json_encode($response);
+    }
+}
+
+// Function to handle teacher sign-up
+function handleSignUpTeacher($teacherFunctions)
+{
+    // Get user input from the form
+    $firstname = $_POST["firstname"];
+    $lastname = $_POST["lastname"];
+    $email = $_POST["email"];
+    $password = $_POST["password"];
+
+    // Attempt to sign up the teacher
+    $result = $teacherFunctions->signUpTeacher($firstname, $lastname, $email, $password);
+
+    // Prepare the response array
+    $response = [];
+
+    if ($result === 1) {
+        // Sign-up successful
+        $response['status'] = 'success';
+        $response['message'] = 'Teacher signed up successfully!';
+        $response['redirect'] = '../view/signin.html'; // Redirect if the user is done signing up
+    } elseif ($result === 0) {
+        // Sign-up failed
+        $response['status'] = 'error';
+        $response['message'] = 'Sign-up failed.';
+    } else {
+        // Error occurred during sign-up
+        $response['status'] = 'error';
+        $response['message'] = 'Error: ' . $teacherFunctions->getErrMsg();
+    }
+
+    // Encode and echo the response
+    echo json_encode($response);
+}
+
+// Function to handle teacher sign-in
+function handleSignInTeacher($teacherFunctions)
+{
+    // Get user input from the form
+    $email = $_POST["email"];
+    $password = $_POST["password"];
+
+    // Attempt to sign in the teacher
+    $result = $teacherFunctions->signInTeacher($email, $password);
+
+    // Prepare the response array
+    $response = [];
+
+    if ($result === 1) {
+        // Sign-up successful
+        $response['status'] = 'success';
+        $response['message'] = 'Teacher signed in successfully!';
+        $response['redirect'] = '../view/home.html'; // Redirect if the user is done signing up
+    } elseif ($result === 0) {
+        // Sign-up failed
+        $response['status'] = 'error';
+        $response['message'] = 'Error signing in teacher.';
+    } else {
+        // Error occurred during sign-up
+        $response['status'] = 'error';
+        $response['message'] = 'Error: ' . $teacherFunctions->getErrMsg();
+    }
+    // Encode and echo the response
+    echo json_encode($response);
+}
+
+// Function to handle teacher update
+function handleUpdateTeacher($teacherFunctions)
+{
+    // Get user input from the form
+    $teacher_id = $_POST["teacher_id"];
+    $firstname = $_POST["firstname"];
+    $lastname = $_POST["lastname"];
+    $email = $_POST["email"];
+    $password = $_POST["password"];
+
+    // Attempt to update the teacher
+    $result = $teacherFunctions->updateTeacher($teacher_id, $firstname, $lastname, $email, $password);
+
+    // Prepare the response array
+    $response = [];
+
+    if ($result) {
+        // Update successful
+        $response['status'] = 'success';
+        $response['message'] = 'Teacher updated successfully!';
+    } else {
+        // Update failed
+        $response['status'] = 'error';
+        $response['message'] = 'Error updating teacher.';
+    }
+
+    // Encode and echo the response
+    echo json_encode($response);
+}
+
+// Function to handle teacher deletion
+function handleDeleteTeacher($teacherFunctions)
+{
+    // Get user input from the form
+    $teacher_id = $_POST["teacher_id"];
+
+    // Attempt to delete the teacher
+    $result = $teacherFunctions->deleteTeacher($teacher_id);
+
+    // Prepare the response array
+    $response = [];
+
+    if ($result) {
+        // Delete successful
+        $response['status'] = 'success';
+        $response['message'] = 'Teacher deleted successfully!';
+    } else {
+        // Delete failed
+        $response['status'] = 'error';
+        $response['message'] = 'Error deleting teacher.';
+    }
+
+    // Encode and echo the response
+    echo json_encode($response);
+}
+
+// Function to handle student insertion
+function handleInsertStudent($teacherFunctions)
+{
+    // Get user input from the form
+    // Add more input variables as needed
+    $teacher_id = $_POST["teacher_id"];
+    $firstname = $_POST["firstname"];
+    $lastname = $_POST["lastname"];
+    $email = $_POST["email"];
+    $gender = $_POST["gender"];
+    $birthdate = $_POST["birthdate"];
+    $contactnumber = $_POST["contactnumber"];
+    $addressed = $_POST["addressed"];
+    $school_id_number = $_POST["school_id_number"];
+    $degree = $_POST["degree"];
+    $section = $_POST["section"];
+
+    // Attempt to insert the student
+    $result = $teacherFunctions->insertStudent($teacher_id, $firstname, $lastname, $email, $gender, $birthdate, $contactnumber, $addressed, $school_id_number, $degree, $section);
+
+    // Prepare the response array
+    $response = [];
+
+    if ($result) {
+        // Insert successful
+        $response['status'] = 'success';
+        $response['message'] = 'Student inserted successfully!';
+    } else {
+        // Insert failed
+        $response['status'] = 'error';
+        $response['message'] = 'Error inserting student.';
+    }
+
+    // Encode and echo the response
+    echo json_encode($response);
+}
+
+// Function to handle student details retrieval
+function handleGetStudent($teacherFunctions)
+{
+    // Get user input from the form
+    $student_lists_id = $_POST["student_lists_id"];
+
+    // Attempt to get student details
+    $studentDetails = $teacherFunctions->getStudent($student_lists_id);
+
+    // Prepare the response array
+    $response = [];
+
+    if ($studentDetails !== null) {
+        // Get successful
+        $response['status'] = 'success';
+        $response['data'] = $studentDetails;
+    } else {
+        // Get failed
+        $response['status'] = 'error';
+        $response['message'] = 'Error fetching student details.';
+    }
+
+    // Encode and echo the response
+    echo json_encode($response);
+}
+
+// Function to handle student update
+function handleUpdateStudent($teacherFunctions)
+{
+    // Get user input from the form
+    // Add more input variables as needed
+    $student_lists_id = $_POST["student_lists_id"];
+    $teacher_id = $_POST["teacher_id"];
+    $firstname = $_POST["firstname"];
+    $lastname = $_POST["lastname"];
+    $email = $_POST["email"];
+    $gender = $_POST["gender"];
+    $birthdate = $_POST["birthdate"];
+    $contactnumber = $_POST["contactnumber"];
+    $addressed = $_POST["addressed"];
+    $school_id_number = $_POST["school_id_number"];
+    $degree = $_POST["degree"];
+    $section = $_POST["section"];
+
+    // Attempt to update the student
+    $result = $teacherFunctions->updateStudent($student_lists_id, $teacher_id, $firstname, $lastname, $email, $gender, $birthdate, $contactnumber, $addressed, $school_id_number, $degree, $section);
+
+    // Prepare the response array
+    $response = [];
+
+    if ($result) {
+        // Update successful
+        $response['status'] = 'success';
+        $response['message'] = 'Student updated successfully!';
+    } else {
+        // Update failed
+        $response['status'] = 'error';
+        $response['message'] = 'Error updating student.';
+    }
+
+    // Encode and echo the response
+    echo json_encode($response);
+}
+
+// Function to handle student deletion
+function handleDeleteStudent($teacherFunctions)
+{
+    // Get user input from the form
+    $student_lists_id = $_POST["student_lists_id"];
+
+    // Attempt to delete the student
+    $result = $teacherFunctions->deleteStudent($student_lists_id);
+
+    // Prepare the response array
+    $response = [];
+
+    if ($result) {
+        // Delete successful
+        $response['status'] = 'success';
+        $response['message'] = 'Student deleted successfully!';
+    } else {
+        // Delete failed
+        $response['status'] = 'error';
+        $response['message'] = 'Error deleting student.';
+    }
+
+    // Encode and echo the response
+    echo json_encode($response);
+}
+
+// Function to handle student search
+function handleSearchStudent($teacherFunctions)
+{
+    // Get user input from the form
+    $search_term = $_POST["search_term"];
+
+    // Attempt to search for students
+    $searchResult = $teacherFunctions->searchStudent($search_term);
+
+    // Prepare the response array
+    $response = [];
+
+    if ($searchResult !== false) {
+        // Search successful
+        $response['status'] = 'success';
+        $response['data'] = $searchResult;
+    } else {
+        // Search failed
+        $response['status'] = 'error';
+        $response['message'] = 'Error searching for students.';
+    }
+
+    // Encode and echo the response
+    echo json_encode($response);
+}
+
+// Function to handle getting teacher id
+function handleGetTeacherId($teacherFunctions)
+{
+    // Get user input from the form
+    $email = $_POST["email"];
+
+    // Attempt to get teacher id
+    $teacherIdResult = $teacherFunctions->getTeacherId($email);
+
+    // Prepare the response array
+    $response = [];
+
+    if ($teacherIdResult !== null) {
+        // Get successful
+        $response['status'] = 'success';
+        $response['teacher_id'] = $teacherIdResult['teacher_id'];
+    } else {
+        // Get failed
+        $response['status'] = 'error';
+        $response['message'] = 'Error fetching teacher ID.';
+    }
+
+    // Encode and echo the response as JSON
+    echo json_encode($response);
+}
+
+?>
+
+// teacherfunctions.js
+
+const { createApp } = Vue;
+
+// Function to perform a teacher function using fetch
+async function performTeacherFunction(action, formData) {
+  try {
+    // Fetch data from the server
+    const response = await fetch('http://localhost/Student-Lists/api/route/teacherfunctions_route.php', {
+      method: 'POST',
+      body: formData,
+    });
+
+    // Check if the fetch operation was successful
+    if (response.ok) {
+      // Parse the JSON response
+      const data = await response.json();
+
+      // Handle the response data based on its status
+      if (data.status === 'success') {
+        // Successful response, handle additional logic if needed
+        console.log('Response data:', data);
+
+        if (data.redirect) {
+          console.log('Redirecting to:', data.redirect);
+          window.location.href = data.redirect;
+        }
+
+        return data; // Return the data for further processing if needed
+      } else {
+        // Unsuccessful response, handle the error message
+        console.error('Error:', data.message);
+        throw new Error(data.message);
+      }
+    } else {
+      // Handle fetch errors (HTTP error status)
+      console.error(`HTTP error: ${response.status} - ${response.statusText}`);
+      throw new Error(`HTTP error: ${response.status} - ${response.statusText}`);
+    }
+  } catch (error) {
+    // Handle general errors (e.g., network issues)
+    console.error('Fetch error:', error.message);
+    throw new Error(`Fetch error: ${error.message}`);
+  }
+}
+
+createApp({
+  data() {
+    return {
+      selectedFunction: '',  // No need to hardcode the initial value here
+      teacherId: '',
+      studentListsId: '',
+      lastname: '',
+      firstname: '',
+      email: '',
+      password: '',
+      birthdate: '',
+      gender: '',
+      contactnumber: '',
+      addressed: '',
+      schoolIdNumber: '',
+      degree: '',
+      section: '',
+      searchTerm: '',
+      message: '',
+    };
+  },
+  mounted() {
+    // Fetch the initial value from the form's data-action attribute
+    this.selectedFunction = document.getElementById('teacherfunctions-form').getAttribute('data-action');
+  },
+  methods: {
+    async performTeacherFunction(action) {
+      let data = new FormData();
+      console.log('Performing teacher function:', action);
+      data.append('action', action);
+    
+      // Add data properties based on the selected teacher function
+      switch (action) {
+        case 'signUpTeacher':
+          data.append('firstname', this.firstname);
+          data.append('lastname', this.lastname);
+          data.append('email', this.email);
+          data.append('password', this.password);
+          break;
+    
+        case 'signInTeacher':
+          data.append('email', this.email);
+          data.append('password', this.password);
+          break;
+    
+        case 'updateTeacher':
+          data.append('teacher_id', this.teacherId);
+          data.append('firstname', this.firstname);
+          data.append('lastname', this.lastname);
+          data.append('email', this.email);
+          data.append('password', this.password);
+          break;
+    
+        case 'deleteTeacher':
+          data.append('teacher_id', this.teacherId);
+          break;
+    
+        case 'getStudent':
+          data.append('student_lists_id', this.studentListsId);
+          break;
+    
+        case 'insertStudent':
+          data.append('teacher_id', this.teacherId); 
+          data.append('firstname', this.firstname);
+          data.append('lastname', this.lastname);
+          data.append('email', this.email);
+          data.append('gender', this.gender);
+          data.append('birthdate', this.birthdate);
+          data.append('contactnumber', this.contactnumber);
+          data.append('addressed', this.addressed);
+          data.append('school_id_number', this.schoolIdNumber);
+          data.append('degree', this.degree);
+          data.append('section', this.section);
+          break;
+    
+        case 'deleteStudent':
+          data.append('student_lists_id', this.studentListsId);
+          break;
+    
+        case 'updateStudent':
+          data.append('student_lists_id', this.studentListsId);
+          data.append('teacher_id', this.teacherId);
+          data.append('firstname', this.firstname);
+          data.append('lastname', this.lastname);
+          data.append('email', this.email);
+          data.append('gender', this.gender);
+          data.append('birthdate', this.birthdate);
+          data.append('contactnumber', this.contactnumber);
+          data.append('addressed', this.addressed);
+          data.append('school_id_number', this.schoolIdNumber);
+          data.append('degree', this.degree);
+          data.append('section', this.section);
+          break;
+    
+        case 'searchStudent':
+          data.append('search_term', this.searchTerm);
+          break;
+    
+        case 'getTeacherId':
+          data.append('email', this.email);
+          break;
+    
+        // Add cases for other procedures as needed
+        
+        default:
+          break;
+      }   
+      try {
+        const result = await performTeacherFunction(action, data);
+
+        console.log('Result:', result);
+
+        // Handle additional logic based on function if needed
+        if (result.status === 'success') {
+          this.message = result.message;
+
+          if (result.redirect) {
+            console.log('Redirecting to:', result.redirect);
+            window.location.href = result.redirect;
+          }
+        } else {
+          this.message = result.message;
+        }
+      } catch (error) {
+        console.error('Error performing teacher function:', error.message);
+        this.message = 'An error occurred during teacher function.';
+      } finally {
+        this.formClear();
+      }
+    },
+
+    // Remove the extra fetch call
+    // fetch('http://localhost/Student-Lists/api/route/teacherfunctions_route.php', {
+    //   method: 'POST',
+    //   body: data,
+    // })
+    //   .then((res) => {
+    //     if (res.ok) {
+    //       return res.json();
+    //     } else {
+    //       throw new Error(`Failed to perform teacher function: ${res.statusText}`);
+    //     }
+    //   })
+    //   .then((data) => {
+    //     console.log('Response data:', data);
+
+    //     if (data.status === 'success') {
+    //       this.message = data.message;
+
+    //       // Handle additional logic based on function if needed
+    //       if (data.redirect) {
+    //         console.log('Redirecting to:', data.redirect);
+    //         window.location.href = data.redirect;
+    //       }
+    //     } else {
+    //       this.message = data.message;
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error('Fetch error:', error.message);
+    //     this.message = 'An error occurred during teacher function.';
+    //   })
+    //   .finally(() => {
+    //     this.formClear();
+    //   }),
+
+    formClear() {
+      // Add logic to clear form based on the selected teacher function
+      this.teacherId = '';
+      this.studentListsId = '';
+      this.lastname = '';
+      this.firstname = '';
+      this.email = '';
+      this.password = '';
+      this.birthdate = '';
+      this.gender = '';
+      this.contactnumber = '';
+      this.addressed = '';
+      this.schoolIdNumber = '';
+      this.degree = '';
+      this.section = '';
+      this.searchTerm = '';
+    },
+  },
+}).mount('#teacherfunctions-form');
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form {
+            max-width: 300px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            color: #333;
+            margin-top: 16px;
+        }
+
+        a {
+            color: #1e88e5;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h2>Sign Up</h2>
+    <form id="teacherfunctions-form" data-action="signUpTeacher">
+        <label for="firstname">First Name:</label>
+        <input type="text" id="firstname" name="firstname" v-model="firstname" required>
+
+        <label for="lastname">Last Name:</label>
+        <input type="text" id="lastname" name="lastname" v-model="lastname" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" v-model="email" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" v-model="password" required>
+
+        <button type="button" @click="performTeacherFunction('signUpTeacher')">Sign Up</button>
+        <p>Already have an account? <a href="signin.html">Sign In</a></p>
+    </form>
+
+    <script src="../vuejs/lib/vue.global.js"></script>
+    <script src="../functions/teacherfunctions.js"></script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form {
+            max-width: 300px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        a {
+            color: #1e88e5;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h2>Sign In</h2>
+    <form id="teacherfunctions-form" :data-action="selectedFunction">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" v-model="email" required aria-labelledby="email-label">
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" v-model="password" required aria-labelledby="password-label">
+
+        <button type="button" @click="performTeacherFunction('signInTeacher')">Sign In</button>
+
+        <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+    </form>
+
+    <script src="../vuejs/lib/vue.global.js"></script>
+    <script src="../functions/teacherfunctions.js"></script>
+</body>
+</html>
+
+<?php 
+session_start();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        div {
+            max-width: 300px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            color: #333;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h2>Teacher Home</h2>
+        <form id="teacherfunctions-form" :data-action="selectedFunction">
+            <label for="teacherId">Teacher ID:</label>
+            <input type="text" id="teacherId" name="teacherId" v-model="teacherId" readonly>            
+
+            <label for="firstname">Student First Name:</label>
+            <input type="text" id="firstname" v-model="firstname" required>
+
+            <label for="lastname">Student Last Name:</label>
+            <input type="text" id="lastname" v-model="lastname" required>
+
+            <label for="email">Student Email:</label>
+            <input type="email" id="email" v-model="email" required>
+
+            <label for="birthdate">Student Birthdate:</label>
+            <input type="date" id="birthdate" v-model="birthdate" required>
+
+            <label for="gender">Student Gender:</label>
+            <select id="gender" v-model="gender" required>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+
+            <label for="contactnumber">Student Contact Number:</label>
+            <input type="text" id="contactnumber" v-model="contactnumber" required>
+            
+            <label for="addressed">Student Address:</label>
+            <input type="text" id="addressed" v-model="addressed" required>
+
+            <label for="schoolIdNumber">Student School ID Number:</label>
+            <input type="text" id="schoolIdNumber" v-model="schoolIdNumber" required>
+
+            <label for="degree">Student Degree:</label>
+            <input type="text" id="degree" v-model="degree" required>
+
+            <label for="section">Student Section:</label>
+            <input type="text" id="section" v-model="section" required>
+
+            <button type="button" @click="performTeacherFunction('insertStudent')">Add Student</button>
+            <p id="home-message">{{ message }}</p>
+        </form>
+    </div>
+    <!-- Vue.js -->
+    <script src="../vuejs/lib/vue.global.js"></script>
+    <!-- Your teacherfunctions.js file -->
+    <script src="../functions/teacherfunctions.js"></script>
+</body>
+</html>

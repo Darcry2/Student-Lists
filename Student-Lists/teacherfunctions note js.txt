@@ -1,0 +1,231 @@
+// teacherfunctions.js
+
+const { createApp } = Vue;
+
+// Function to perform a teacher function using fetch
+async function performTeacherFunction(action, formData) {
+  try {
+    // Fetch data from the server
+    const response = await fetch('http://localhost/Student-Lists/api/route/teacherfunctions_route.php', {
+      method: 'POST',
+      body: formData,
+    });
+
+    // Check if the fetch operation was successful
+    if (response.ok) {
+      // Parse the JSON response
+      const data = await response.json();
+
+      // Handle the response data based on its status
+      if (data.status === 'success') {
+        // Successful response, handle additional logic if needed
+        console.log('Response data:', data);
+
+        if (data.redirect) {
+          console.log('Redirecting to:', data.redirect);
+          window.location.href = data.redirect;
+        }
+
+        return data; // Return the data for further processing if needed
+      } else {
+        // Unsuccessful response, handle the error message
+        console.error('Error:', data.message);
+        throw new Error(data.message);
+      }
+    } else {
+      // Handle fetch errors (HTTP error status)
+      console.error(`HTTP error: ${response.status} - ${response.statusText}`);
+      throw new Error(`HTTP error: ${response.status} - ${response.statusText}`);
+    }
+  } catch (error) {
+    // Handle general errors (e.g., network issues)
+    console.error('Fetch error:', error.message);
+    throw new Error(`Fetch error: ${error.message}`);
+  }
+}
+
+createApp({
+  data() {
+    return {
+      selectedFunction: '',  // No need to hardcode the initial value here
+      teacherId: '',
+      studentListsId: '',
+      lastname: '',
+      firstname: '',
+      email: '',
+      password: '',
+      birthdate: '',
+      gender: '',
+      contactnumber: '',
+      addressed: '',
+      schoolIdNumber: '',
+      degree: '',
+      section: '',
+      searchTerm: '',
+      message: '',
+    };
+  },
+  mounted() {
+    // Fetch the initial value from the form's data-action attribute
+    this.selectedFunction = document.getElementById('teacherfunctions-form').getAttribute('data-action');
+  },
+  methods: {
+    async performTeacherFunction(action) {
+      let data = new FormData();
+      console.log('Performing teacher function:', action);
+      data.append('action', action);
+    
+      // Add data properties based on the selected teacher function
+      switch (action) {
+        case 'signUpTeacher':
+          data.append('firstname', this.firstname);
+          data.append('lastname', this.lastname);
+          data.append('email', this.email);
+          data.append('password', this.password);
+          break;
+    
+        case 'signInTeacher':
+          data.append('email', this.email);
+          data.append('password', this.password);
+          break;
+    
+        case 'updateTeacher':
+          data.append('teacher_id', this.teacherId);
+          data.append('firstname', this.firstname);
+          data.append('lastname', this.lastname);
+          data.append('email', this.email);
+          data.append('password', this.password);
+          break;
+    
+        case 'deleteTeacher':
+          data.append('teacher_id', this.teacherId);
+          break;
+    
+        case 'getStudent':
+          data.append('student_lists_id', this.studentListsId);
+          break;
+    
+        case 'insertStudent':
+          data.append('teacher_id', this.teacherId); 
+          data.append('firstname', this.firstname);
+          data.append('lastname', this.lastname);
+          data.append('email', this.email);
+          data.append('gender', this.gender);
+          data.append('birthdate', this.birthdate);
+          data.append('contactnumber', this.contactnumber);
+          data.append('addressed', this.addressed);
+          data.append('school_id_number', this.schoolIdNumber);
+          data.append('degree', this.degree);
+          data.append('section', this.section);
+          break;
+    
+        case 'deleteStudent':
+          data.append('student_lists_id', this.studentListsId);
+          break;
+    
+        case 'updateStudent':
+          data.append('student_lists_id', this.studentListsId);
+          data.append('teacher_id', this.teacherId);
+          data.append('firstname', this.firstname);
+          data.append('lastname', this.lastname);
+          data.append('email', this.email);
+          data.append('gender', this.gender);
+          data.append('birthdate', this.birthdate);
+          data.append('contactnumber', this.contactnumber);
+          data.append('addressed', this.addressed);
+          data.append('school_id_number', this.schoolIdNumber);
+          data.append('degree', this.degree);
+          data.append('section', this.section);
+          break;
+    
+        case 'searchStudent':
+          data.append('search_term', this.searchTerm);
+          break;
+    
+        case 'getTeacherId':
+          data.append('email', this.email);
+          break;
+    
+        // Add cases for other procedures as needed
+        
+        default:
+          break;
+      }   
+      try {
+        const result = await performTeacherFunction(action, data);
+
+        console.log('Result:', result);
+
+        // Handle additional logic based on function if needed
+        if (result.status === 'success') {
+          this.message = result.message;
+
+          if (result.redirect) {
+            console.log('Redirecting to:', result.redirect);
+            window.location.href = result.redirect;
+          }
+        } else {
+          this.message = result.message;
+        }
+      } catch (error) {
+        console.error('Error performing teacher function:', error.message);
+        this.message = 'An error occurred during teacher function.';
+      } finally {
+        this.formClear();
+      }
+    },
+
+    // Remove the extra fetch call
+    // fetch('http://localhost/Student-Lists/api/route/teacherfunctions_route.php', {
+    //   method: 'POST',
+    //   body: data,
+    // })
+    //   .then((res) => {
+    //     if (res.ok) {
+    //       return res.json();
+    //     } else {
+    //       throw new Error(`Failed to perform teacher function: ${res.statusText}`);
+    //     }
+    //   })
+    //   .then((data) => {
+    //     console.log('Response data:', data);
+
+    //     if (data.status === 'success') {
+    //       this.message = data.message;
+
+    //       // Handle additional logic based on function if needed
+    //       if (data.redirect) {
+    //         console.log('Redirecting to:', data.redirect);
+    //         window.location.href = data.redirect;
+    //       }
+    //     } else {
+    //       this.message = data.message;
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error('Fetch error:', error.message);
+    //     this.message = 'An error occurred during teacher function.';
+    //   })
+    //   .finally(() => {
+    //     this.formClear();
+    //   }),
+
+    formClear() {
+      // Add logic to clear form based on the selected teacher function
+      this.teacherId = '';
+      this.studentListsId = '';
+      this.lastname = '';
+      this.firstname = '';
+      this.email = '';
+      this.password = '';
+      this.birthdate = '';
+      this.gender = '';
+      this.contactnumber = '';
+      this.addressed = '';
+      this.schoolIdNumber = '';
+      this.degree = '';
+      this.section = '';
+      this.searchTerm = '';
+    },
+  },
+}).mount('#teacherfunctions-form');

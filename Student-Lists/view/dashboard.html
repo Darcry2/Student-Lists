@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Your custom styles if needed -->
+</head>
+<body>
+    <!-- Bootstrap Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Teacher Dashboard</a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="home.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Account</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div>
+            <h2 class="mb-4">Teacher Dashboard</h2>
+            <!-- Your dashboard components go here -->
+            <div id="dashboard">
+                <!-- Example: Display a chart -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Student Enrollment Statistics</h5>
+                        <!-- Add your chart component here -->
+                        <chart-component :data="chartData"></chart-component>
+                    </div>
+                </div>
+
+                <!-- Example: Display a table -->
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Student Information</h5>
+                        <!-- Add your table component here -->
+                        <table-component :data="tableData"></table-component>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vue.js -->
+    <script src="../vuejs/lib/vue.global.js"></script>
+    <!-- Your dashboard.js file -->
+    <script src="../functions/dashboard.js"></script>
+
+    <!-- Bootstrap JS (Popper.js and Bootstrap JS) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

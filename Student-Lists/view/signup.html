@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form {
+            max-width: 300px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            color: #333;
+            margin-top: 16px;
+        }
+
+        a {
+            color: #1e88e5;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h2>Sign Up</h2>
+    <form id="teacherfunctions-form" data-action="signUpTeacher">
+        <label for="firstname">First Name:</label>
+        <input type="text" id="firstname" name="firstname" v-model="firstname" required>
+
+        <label for="lastname">Last Name:</label>
+        <input type="text" id="lastname" name="lastname" v-model="lastname" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" v-model="email" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" v-model="password" required>
+
+        <button type="button" @click="performTeacherFunction('signUpTeacher')">Sign Up</button>
+        <p>Already have an account? <a href="signin.html">Sign In</a></p>
+    </form>
+
+    <script src="../vuejs/lib/vue.global.js"></script>
+    <script src="../functions/teacherfunctions.js"></script>
+</body>
+</html>

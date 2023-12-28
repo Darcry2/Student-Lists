@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Home</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Bootstrap Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Teacher Home</a>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="home.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Account</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div>
+            <h2 class="mb-4">Teacher Home</h2>
+            <form id="teacherfunctions-form" :data-action="selectedFunction">
+                <div class="mb-3">
+                    <label for="teacherId" class="form-label">Teacher ID:</label>
+                    <input type="text" class="form-control" id="teacherId" name="teacherId" v-model="teacherId">            
+                </div>
+
+                <div class="mb-3">
+                    <label for="firstname" class="form-label">Student First Name:</label>
+                    <input type="text" class="form-control" id="firstname" v-model="firstname" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="lastname" class="form-label">Student Last Name:</label>
+                    <input type="text" class="form-control" id="lastname" v-model="lastname" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Student Email:</label>
+                    <input type="email" class="form-control" id="email" v-model="email" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="birthdate" class="form-label">Student Birthdate:</label>
+                    <input type="date" class="form-control" id="birthdate" v-model="birthdate" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="gender" class="form-label">Student Gender:</label>
+                    <select class="form-select" id="gender" v-model="gender" required>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="contactnumber" class="form-label">Student Contact Number:</label>
+                    <input type="text" class="form-control" id="contactnumber" v-model="contactnumber" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="addressed" class="form-label">Student Address:</label>
+                    <input type="text" class="form-control" id="addressed" v-model="addressed" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="schoolIdNumber" class="form-label">Student School ID Number:</label>
+                    <input type="text" class="form-control" id="schoolIdNumber" v-model="schoolIdNumber" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="degree" class="form-label">Student Degree:</label>
+                    <input type="text" class="form-control" id="degree" v-model="degree" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="section" class="form-label">Student Section:</label>
+                    <input type="text" class="form-control" id="section" v-model="section" required>
+                </div>
+
+                <button type="button" class="btn btn-primary" @click="performTeacherFunction('insertStudent')">Add Student</button>
+                <p class="text-center mt-3" id="home-message">{{ message }}</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vue.js -->
+    <script src="../vuejs/lib/vue.global.js"></script>
+    <!-- Your teacherfunctions.js file -->
+    <script src="../functions/teacherfunctions.js"></script>
+
+    <!-- Bootstrap JS (Popper.js and Bootstrap JS) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
